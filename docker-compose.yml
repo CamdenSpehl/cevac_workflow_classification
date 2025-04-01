@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: workorder-classification-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    environment:
+      - MODEL_PATH=/app/models/trained_model.pkl
+    restart: unless-stopped
+    command: >
+      bash -c "if [ ! -f /app/models/trained_model.pkl ]; then
+                echo 'Training model...' &&
+                python train_model.py --data /app/data/workorder.csv --output /app/models/trained_model.pkl;
+              fi &&
+              uvicorn main:app --host 0.0.0.0 --port 8000"
